@@ -1,0 +1,130 @@
+import javafx.animation.AnimationTimer;
+import javafx.application.Application;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+public class JumpingGame extends Application {
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
+    private static final int PLAYER_SIZE = 40;
+    private static final int STAR_SIZE = 20;
+    private static final int GROUND_HEIGHT = 40;
+    private static final int JUMP_VELOCITY = -15;
+    private static final int GRAVITY = 1;
+
+    private Group root;
+    private Rectangle ground;
+    private Rectangle player;
+    private List<Rectangle> stars;
+    private int level = 1;
+    private int score = 0;
+    private Label levelLabel;
+    private Label scoreLabel;
+
+    private int playerVelocityY = 0;
+    private boolean isJumping = false;
+
+    @Override
+    public void start(Stage primaryStage) {
+        root = new Group();
+        Scene scene = new Scene(root, WIDTH, HEIGHT);
+        primaryStage.setTitle("Jumping Game");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.SPACE && !isJumping) {
+                isJumping = true;
+                playerVelocityY = JUMP_VELOCITY;
+            }
+        });
+
+        initGame();
+
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                update();
+            }
+        };
+        timer.start();
+    }
+
+    private void initGame() {
+        ground = new Rectangle(0, HEIGHT - GROUND_HEIGHT, WIDTH, GROUND_HEIGHT);
+        ground.setFill(Color.GREEN);
+        root.getChildren().add(ground);
+
+        player = new Rectangle((WIDTH - PLAYER_SIZE) / 2, HEIGHT - GROUND_HEIGHT - PLAYER_SIZE,
+                PLAYER_SIZE, PLAYER_SIZE);
+        player.setFill(Color.BLUE);
+        root.getChildren().add(player);
+
+        levelLabel = new Label("Level: " + level);
+        levelLabel.setLayoutX(10);
+        levelLabel.setLayoutY(10);
+        root.getChildren().add(levelLabel);
+
+        scoreLabel = new Label("Score: " + score);
+        scoreLabel.setLayoutX(10);
+        scoreLabel.setLayoutY(30);
+        root.getChildren().add(scoreLabel);
+
+        stars = new ArrayList<>();
+        generateStars();
+
+        isJumping = false;
+        playerVelocityY = 0;
+    }
+
+    private void update() {
+        playerVelocityY += GRAVITY;
+        player.setY(player.getY() + playerVelocityY);
+
+        if (player.getY() + PLAYER_SIZE >= HEIGHT - GROUND_HEIGHT) {
+            player.setY(HEIGHT - GROUND_HEIGHT - PLAYER_SIZE);
+            playerVelocityY = 0;
+            isJumping = false;
+        }
+
+        for (Rectangle star : stars) {
+            if (player.getBoundsInParent().intersects(star.getBoundsInParent())) {
+                score++;
+                stars.remove(star);
+                root.getChildren().remove(star);
+                scoreLabel.setText("Score: " + score);
+                break;
+            }
+        }
+
+        if (stars.isEmpty()) {
+            level++;
+            levelLabel.setText("Level: " + level);
+            generateStars();
+        }
+    }
+
+    private void generateStars() {
+        Random random = new Random();
+        for (int i = 0; i < level; i++) {
+            Rectangle star = new Rectangle(random.nextInt(WIDTH - STAR_SIZE),
+                    random.nextInt(HEIGHT - GROUND_HEIGHT - STAR_SIZE), STAR_SIZE, STAR_SIZE);
+            star.setFill(Color.YELLOW);
+            stars.add(star);
+            root.getChildren().add(star);
+        }
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
