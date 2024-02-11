@@ -1,2 +1,2 @@
 # Stars
-bad game
+bad game!
