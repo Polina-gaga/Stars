@@ -1,3 +1,3 @@
 # Stars
 bad game!
-/--
+/---
