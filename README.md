@@ -1,3 +1,3 @@
-# Stars
+# Stars low q
 bad game!
 /---
